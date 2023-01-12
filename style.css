@@ -54,7 +54,7 @@ body {
     background-color: rgb(70, 70, 70);
 }
 
-.clear, .delete {
+.clear {
     grid-column-start: span 2;
     text-align: center;
     border: 1px solid black;
