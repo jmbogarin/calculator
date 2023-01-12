@@ -107,34 +107,39 @@ function compute(action) {
     moveDisplay()
 }
 
-function moveDisplay(action) {
+function moveDisplay(direction) {
 
-    const displayLeft = display.getBoundingClientRect().x
-    const displayContainerLeft = displayContainer.getBoundingClientRect().x
-    const displayRight = displayLeft + display.getBoundingClientRect().width
-    const displayContainerRight = displayContainerLeft + displayContainer.getBoundingClientRect().width
-    let right = parseFloat(getComputedStyle(display).right.substring(0,getComputedStyle(display).right.length-2))
+    let dim = {
+        get displayLeft() {return display.getBoundingClientRect().x},
+        get displayContainerLeft() {return displayContainer.getBoundingClientRect().x},
+        get displayWidth() {return display.getBoundingClientRect().width},
+        get displayContainerWidth() {return displayContainer.getBoundingClientRect().width},
+        get displayRight() {return dim.displayLeft + dim.displayWidth},
+        get displayContainerRight() {return dim.displayContainerLeft + dim.displayContainerWidth},
+        get right() {return parseFloat(getComputedStyle(display).right.substring(0,getComputedStyle(display).right.length-2))}
+    }
 
-    if (displayLeft < displayContainerLeft) {
+    if (!direction) {
+        if (clearDisplay && dim.displayWidth > dim.displayContainerWidth) {
+            display.style.right = dim.right - (dim.displayWidth - dim.displayContainerWidth) + 'px';
+        } else {
+            display.style.right = '0px';
+        }
+    } else if (direction === 'ArrowLeft' && dim.displayLeft < dim.displayContainerLeft) {
+        display.style.right = dim.right - 15 + 'px';
+    } else if (direction === 'ArrowRight' && dim.displayRight > dim.displayContainerRight)  {
+        display.style.right = dim.right + 15 + 'px';
+    }
+
+    if (dim.displayLeft < dim.displayContainerLeft) {
         arrowLeft.classList.remove("hidden")
     } else {
         arrowLeft.classList.add("hidden")
     }
-    if (displayRight > displayContainerRight){
+    if (dim.displayRight > dim.displayContainerRight){
         arrowRight.classList.remove("hidden")
     } else {
         arrowRight.classList.add("hidden")
-    }
-
-    if (!action) {
-        display.style.right = '0px';
-        return
-    }
-    
-    if (action === 'left' && displayLeft < displayContainerLeft) {
-        display.style.right = right - 15 + 'px'
-    } else if (action === 'right' && displayRight > displayContainerRight)  {
-        display.style.right = right + 15 + 'px'
     }
 }
 
@@ -153,4 +158,26 @@ operationButtons.forEach((element) => element.addEventListener('click',(e) => co
 leftButton.addEventListener('click', (e) => moveDisplay(e.target.getAttribute('value')))
 rightButton.addEventListener('click', (e) => moveDisplay(e.target.getAttribute('value')))
 
-
+window.addEventListener('keydown', (e) => {
+    e.preventDefault()
+    if (['1','2','3','4','5','6','7','8','9','0','.'].includes(e.key)) {
+        addDigitToDisplay(e.key);
+    } else if (['+','-','*','/','Enter','=','^'].includes(e.key)) {
+        const opDict = {
+            '+': 'add',
+            '-': 'subtract',
+            '*': 'multiply',
+            '/': 'divide',
+            'Enter': 'equals',
+            '=': 'equals',
+            '^': 'exp'
+        }
+        compute(opDict[e.key]);
+    } else if (e.key === 'Backspace') {
+        deleteLastDigit();
+    } else if (e.key === 'Escape') {
+        resetCalc();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        moveDisplay(e.key)
+    }
+})
